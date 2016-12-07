@@ -48,7 +48,7 @@
 #include "drivers/pwm_output.h"
 
 #include "fc/config.h"
-#include "fc/mw.h"
+#include "fc/fc_main.h"
 #include "fc/fc_msp.h"
 #include "fc/rc_controls.h"
 #include "fc/runtime_config.h"
@@ -357,10 +357,6 @@ void initActiveBoxIds(void)
     if (feature(FEATURE_TELEMETRY) && telemetryConfig()->telemetry_switch) {
         activeBoxIds[activeBoxIdCount++] = BOXTELEMETRY;
     }
-#endif
-
-#ifdef GTUNE
-    activeBoxIds[activeBoxIdCount++] = BOXGTUNE;
 #endif
 
 #ifdef USE_SERVOS
@@ -1119,7 +1115,7 @@ static bool mspFcProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProcessFn
         sbufWriteU8(dst, currentProfile->pidProfile.dtermSetpointWeight);
         sbufWriteU8(dst, 0); // reserved
         sbufWriteU8(dst, 0); // reserved
-        sbufWriteU8(dst, currentProfile->pidProfile.itermThrottleGain);
+        sbufWriteU8(dst, 0); // reserved
         sbufWriteU16(dst, currentProfile->pidProfile.rateAccelLimit);
         sbufWriteU16(dst, currentProfile->pidProfile.yawRateAccelLimit);
         break;
@@ -1480,7 +1476,7 @@ static mspResult_e mspFcProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         currentProfile->pidProfile.dtermSetpointWeight = sbufReadU8(src);
         sbufReadU8(src); // reserved
         sbufReadU8(src); // reserved
-        currentProfile->pidProfile.itermThrottleGain = sbufReadU8(src);
+        sbufReadU8(src); // reserved
         currentProfile->pidProfile.rateAccelLimit = sbufReadU16(src);
         currentProfile->pidProfile.yawRateAccelLimit = sbufReadU16(src);
         pidInitConfig(&currentProfile->pidProfile);
