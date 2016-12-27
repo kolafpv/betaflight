@@ -37,19 +37,20 @@
 #include "rx/nrf24_v202.h"
 #include "rx/nrf24_h8_3d.h"
 #include "rx/nrf24_inav.h"
+#include "rx/cc2500_frsky.h"
 
 
 uint16_t rxSpiRcData[MAX_SUPPORTED_RC_CHANNEL_COUNT];
 STATIC_UNIT_TESTED uint8_t rxSpiPayload[RX_SPI_MAX_PAYLOAD_SIZE];
 STATIC_UNIT_TESTED uint8_t rxSpiNewPacketAvailable; // set true when a new packet is received
 
-typedef void (*protocolInitPtr)(const rxConfig_t *rxConfig, rxRuntimeConfig_t *rxRuntimeConfig);
-typedef rx_spi_received_e (*protocolDataReceivedPtr)(uint8_t *payload);
-typedef void (*protocolSetRcDataFromPayloadPtr)(uint16_t *rcData, const uint8_t *payload);
+typedef void (*protocolInitFnPtr)(const rxConfig_t *rxConfig, rxRuntimeConfig_t *rxRuntimeConfig);
+typedef rx_spi_received_e (*protocolDataReceivedFnPtr)(uint8_t *payload);
+typedef void (*protocolSetRcDataFromPayloadFnPtr)(uint16_t *rcData, const uint8_t *payload);
 
-static protocolInitPtr protocolInit;
-static protocolDataReceivedPtr protocolDataReceived;
-static protocolSetRcDataFromPayloadPtr protocolSetRcDataFromPayload;
+static protocolInitFnPtr protocolInit;
+static protocolDataReceivedFnPtr protocolDataReceived;
+static protocolSetRcDataFromPayloadFnPtr protocolSetRcDataFromPayload;
 
 STATIC_UNIT_TESTED uint16_t rxSpiReadRawRC(const rxRuntimeConfig_t *rxRuntimeConfig, uint8_t channel)
 {
@@ -104,6 +105,13 @@ STATIC_UNIT_TESTED bool rxSpiSetProtocol(rx_spi_protocol_e protocol)
         protocolInit = inavNrf24Init;
         protocolDataReceived = inavNrf24DataReceived;
         protocolSetRcDataFromPayload = inavNrf24SetRcDataFromPayload;
+        break;
+#endif
+#ifdef USE_RX_FRSKY
+    case RX_SPI_CC2500_FRSKY:
+        protocolInit = frskyInit;
+        protocolDataReceived = frskyDataReceived;
+        protocolSetRcDataFromPayload = frskySetRcDataFromPayload;
         break;
 #endif
     }
